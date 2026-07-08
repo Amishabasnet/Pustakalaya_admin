@@ -40,7 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchMe();
+    (async () => {
+      await fetchMe();
+    })();
   }, [fetchMe]);
 
   const login = useCallback(async (email: string, password: string) => {
