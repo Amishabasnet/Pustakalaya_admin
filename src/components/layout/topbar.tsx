@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { initials } from "@/lib/utils";
-import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
 
 const TITLES: Record<string, string> = {

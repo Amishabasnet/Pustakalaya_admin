@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
 } from "@/hooks/use-books";
 import type { Book } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
-import { Plus, Search, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/api-client";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -64,21 +64,21 @@ export default function BooksPage() {
     }
   }
 
-  async function handleToggleVerify(book: Book) {
+  const handleToggleVerify = useCallback(async (book: Book) => {
     try {
       await toggleVerify.mutateAsync(book._id);
     } catch (err) {
       toast.error(apiErrorMessage(err, "Couldn't update verification."));
     }
-  }
+  }, [toggleVerify]);
 
-  async function handleToggleFeature(book: Book) {
+  const handleToggleFeature = useCallback(async (book: Book) => {
     try {
       await toggleFeature.mutateAsync(book._id);
     } catch (err) {
       toast.error(apiErrorMessage(err, "Couldn't update featured status."));
     }
-  }
+  }, [toggleFeature]);
 
   const columns = useMemo<ColumnDef<Book>[]>(
     () => [
@@ -178,7 +178,7 @@ export default function BooksPage() {
         ),
       },
     ],
-    []
+    [handleToggleVerify, handleToggleFeature]
   );
 
   return (

@@ -42,8 +42,10 @@ export function SupportDetailDrawer({
 
   useEffect(() => {
     if (request) {
-      setStatus(request.status);
-      setNote(request.adminNote ?? "");
+      Promise.resolve().then(() => {
+        setStatus(request.status);
+        setNote(request.adminNote ?? "");
+      });
     }
   }, [request]);
 
