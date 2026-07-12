@@ -1,16 +1,58 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, Order } from "@/lib/types";
+import type { ApiResponse, Order, OrderStatus, Paginated, PaymentStatus } from "@/lib/types";
+
+export interface OrderFilters {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: OrderStatus | "all";
+  paymentStatus?: PaymentStatus | "all";
+}
+
+export function useOrders(filters: OrderFilters) {
+  return useQuery({
+    queryKey: ["admin", "orders", filters],
+    queryFn: async () => {
+      const res = await apiClient.get<ApiResponse<Paginated<Order>>>("/admin/orders", {
+        params: {
+          page: filters.page,
+          limit: filters.limit,
+          search: filters.search || undefined,
+          status: filters.status && filters.status !== "all" ? filters.status : undefined,
+          paymentStatus:
+            filters.paymentStatus && filters.paymentStatus !== "all"
+              ? filters.paymentStatus
+              : undefined,
+        },
+      });
+      return res.data.data;
+    },
+    placeholderData: (prev) => prev,
+  });
+}
 
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+    mutationFn: async ({
+      orderId,
+      status,
+      note,
+    }: {
+      orderId: string;
+      status: OrderStatus;
+      note?: string;
+    }) => {
       const res = await apiClient.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/status`, {
         status,
+        note,
       });
       return res.data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "orders"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+      qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+    },
   });
 }

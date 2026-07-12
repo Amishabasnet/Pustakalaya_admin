@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
-import React from "react";
-
-// Local fallback Providers wrapper to avoid missing-module errors.
-// If you have a dedicated providers file, restore that import.
-function Providers({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+import { Providers } from "./providers";
 import { Toaster } from "sonner";
 
 const playfair = Playfair_Display({
