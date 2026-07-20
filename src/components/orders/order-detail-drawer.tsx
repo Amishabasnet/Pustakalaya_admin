@@ -5,7 +5,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/components/status-badge";
-import { useUpdateOrderStatus } from "../../hooks/use-orders";
+import { useUpdateOrderStatus } from "@/hooks/use-orders";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/lib/types";
 import { MapPin, Package, CheckCircle2 } from "lucide-react";

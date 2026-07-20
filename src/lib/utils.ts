@@ -27,9 +27,12 @@ export function formatDateTime(date: string | Date): string {
   });
 }
 
-export function initials(name: string): string {
+export function initials(name?: string | null): string {
+  if (!name || typeof name !== "string" || !name.trim()) return "?";
   return name
+    .trim()
     .split(" ")
+    .filter(Boolean)
     .map((p) => p[0])
     .slice(0, 2)
     .join("")

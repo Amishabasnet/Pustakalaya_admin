@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,9 +8,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateBook, useUpdateBook } from "@/hooks/use-books";
+import { useUploadImage } from "@/hooks/use-upload-image";
 import type { Book } from "@/lib/types";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/api-client";
+import { ImagePlus, X } from "lucide-react";
 
 const bookSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -20,7 +22,7 @@ const bookSchema = z.object({
   discountPercent: z.string().optional(),
   coverImage: z.string().optional(),
   description: z.string().optional(),
-  genre: z.string().optional(), // comma-separated in the form, split on submit
+  genre: z.string().optional(),
   isbn: z.string().optional(),
   stock: z.string().min(1, "Stock is required"),
 });
@@ -39,16 +41,22 @@ export function BookFormDialog({
   const isEditing = !!book;
   const createBook = useCreateBook();
   const updateBook = useUpdateBook();
+  const uploadImage = useUploadImage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<BookFormValues>({
     resolver: zodResolver(bookSchema),
     defaultValues: { discountPercent: "0", price: "0", stock: "0" },
   });
+
+  const coverImage = watch("coverImage");
 
   useEffect(() => {
     if (open) {
@@ -83,6 +91,19 @@ export function BookFormDialog({
   }, [open, book, reset]);
 
   const isSubmitting = createBook.isPending || updateBook.isPending;
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadImage.mutateAsync(file);
+      setValue("coverImage", url, { shouldValidate: true });
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Couldn't upload the image."));
+    } finally {
+      e.target.value = "";
+    }
+  }
 
   async function onSubmit(values: BookFormValues) {
     const payload = {
@@ -167,8 +188,39 @@ export function BookFormDialog({
             </div>
 
             <div className="col-span-2">
-              <Label htmlFor="coverImage">Cover image URL</Label>
-              <Input id="coverImage" {...register("coverImage")} placeholder="https://…" />
+              <Label>Cover image</Label>
+              <input type="hidden" {...register("coverImage")} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              {coverImage ? (
+                <div className="relative w-24 h-32 rounded-btn overflow-hidden border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setValue("coverImage", "", { shouldValidate: true })}
+                    className="absolute top-1 right-1 bg-black/60 rounded-full p-1 text-white hover:bg-black/80"
+                    aria-label="Remove cover image"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadImage.isPending}
+                  className="flex items-center gap-2 w-full h-11 rounded-btn border border-dashed border-border bg-surface px-3.5 text-[14px] text-text-medium hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+                >
+                  <ImagePlus size={16} />
+                  {uploadImage.isPending ? "Uploading…" : "Upload cover image"}
+                </button>
+              )}
             </div>
 
             <div className="col-span-2">
