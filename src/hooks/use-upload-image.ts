@@ -10,7 +10,7 @@ export function useUploadImage() {
       const res = await apiClient.post<ApiResponse<{ url: string }>>(
         "/upload/image",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": undefined } }
       );
       return res.data.data.url;
     },
